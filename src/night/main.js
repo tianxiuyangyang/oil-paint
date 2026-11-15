@@ -26,6 +26,7 @@ import { createLantern } from './lantern.js';
 import { createDrift } from './drift.js';
 import { createPines } from './pines.js';
 import { createCabin } from './cabin.js';
+import { createTreasures } from '../treasure/index.js';
 
 const q = new URLSearchParams(location.search);
 const capture = q.has('capture');
@@ -107,6 +108,14 @@ const pines = createPines(shared);
 land.shade.add(pines.caster); // the moon lays their shadows down the snow with the horns'
 const cabin = createCabin(shared);
 land.shade.add(cabin.caster);
+// eight things hidden along the ridge. They join the shade scene before it is drawn, so they lie on the snow
+// with their own shadows; the catalogue (E) is theirs to open.
+const treasures = createTreasures({
+  scene, shared, name: 'aurora', heightAt,
+  avoid: pines.colliders, shade: land.shade,
+  mood: { mul: [0.7, 0.78, 1.0], add: [0.06, 0.08, 0.12], floor: [0.1, 0.13, 0.2] }, // moonlight takes the colour out of everything
+  ui: !capture && !q.has('clean'),
+});
 lap('snow');
 const sky = createSky(shared);
 const far = createFar(shared);
@@ -143,6 +152,7 @@ follow.pitch = -0.07;
 follow.lift = 1.5;
 follow.sink = 0.7;
 const input = new Input(renderer.domElement, { pads: !capture && !q.has('nopad') });
+treasures.setInput(input);
 physics.step();
 // he has come up from the south: his tracks are already there behind him
 tracks.lay(crestX, START.z + 16, START.z + 0.4);
@@ -231,6 +241,7 @@ function tick(dt) {
   dt = Math.min(dt, 1 / 20);
   time += dt;
   const inp = input.read(dt);
+  if (treasures.isOpen) treasures.freeze(inp); // the catalogue is open: he stands still until it is shut
   const isIn = cabin.inside(player.feet);
   first += ((firstKey || cabin.threshold(player.feet) ? 1 : 0) - first) * (1 - Math.exp(-6 * dt));
   const fp = first * first * (3 - 2 * first);
@@ -258,6 +269,7 @@ function tick(dt) {
   figure.updateCloak(dt, air, heightAt);
   lantern.update(dt, grip, player.yaw);
   if (!isIn) tracks.update(root, player.yaw, player.speed, onGround);
+  treasures.update(dt, player.feet);
 
   // a trunk between the eye and him brings the eye in; over the ground it rises instead
   follow.update(dt, root, inp.look, inp.zoom, (o, d, max) => {
@@ -294,7 +306,7 @@ function tick(dt) {
 }
 
 window.lab = {
-  THREE, player, follow, camera, input, animator, figure, shared, frame, renderer, timings, counts: { ...snow.counts, ...pines.counts, ...cabin.counts }, cabin, heightAt, crestX, tracks, sky,
+  THREE, player, follow, camera, input, animator, figure, shared, frame, renderer, timings, counts: { ...snow.counts, ...pines.counts, ...cabin.counts }, cabin, heightAt, crestX, tracks, sky, treasures, scene,
   step(dt = 1 / 60, n = 1) { for (let i = 0; i < n; i++) tick(dt); },
   setInput(fn) { input.override = fn; },
   /** Puts him at (x, z) on the ground, facing (fx, fz), with the eye behind him. */
@@ -353,7 +365,7 @@ function run() {
 }
 if (!capture) {
   const hint = document.getElementById('hint');
-  hint.textContent = 'Click to look · WASD move · Shift sprint · Space jump · V first person';
+  hint.textContent = 'Click to look · WASD move · Shift sprint · Space jump · V first person · E treasures';
   addEventListener('keydown', (e) => { if (e.code === 'KeyH') hint.classList.toggle('off'); });
   setTimeout(() => hint.classList.add('faded'), 9000);
 }

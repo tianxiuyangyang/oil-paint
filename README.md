@@ -11,7 +11,7 @@ Draws a three.js scene as thick oil paint, stroke by stroke: every leaf, trunk, 
 
 ![A cloaked wanderer with a lantern on a snow ridge under the aurora, a horn of rock ahead](shots/readme.jpg)
 
-**In the demo:** click to look with the mouse, WASD to move, Shift to sprint, Space to jump, the wheel to step the eye back or in, H hides the hint. A gamepad works too. The two buttons in the corner change the picture. There is no sound.
+**In the demo:** click to look with the mouse, WASD to move, Shift to sprint, Space to jump, the wheel to step the eye back or in, H hides the hint. A gamepad works too. The two buttons in the corner change the picture. There is no sound. **Eight things are hidden in each of the two walks**: walk into one to pick it up, and E opens the catalogue of what has been found and what has not.
 
 - **Aurora.** You start among spruces under snow, come out onto a knoll under the whole sky, and follow the crest north to a cabin at the foot of the horn. V looks through his eyes, and from the cabin's doorstep on the demo does that for you. Look up.
 - **Autumn wood.** A worn way through beech, birch and oak to a clearing.
@@ -99,7 +99,33 @@ For **made things** (a cabin, furniture, pots) there is a kit in `src/night/kit.
 | `src/world/` | The wood: `land.js` (ground and the way through), `floor.js` (leaf carpet, undergrowth), `forest.js` (about 3,100 trees: trunks, bark, about 570,000 leaf dabs), `sky.js`, `leaves.js` (falling), `kick.js` (kicked up) |
 | `src/figure/` | The wanderer: Patch's starter man and his movement (`man.js`, `animator.js`, `player.js`, `input.js`), his hat, and `cloak.js`, a cloth of points on threads kept off his body and under the hat's brim |
 | `src/main.js`, `src/scenes.js`, `src/boot.js` | The wood's demo; which picture is shown; the page's start |
+| `src/treasure/` | The hunt: `data.js` (what is hidden, where, and every line of its catalogue entry), `things.js` (the things themselves, a few primitives each), `index.js` (lays them down, paints them, picks them up), `book.js` (the catalogue E opens) |
 | `tools/` | Headless stills (`shots.mjs`), a film (`clip.mjs`), frame time (`shots.mjs --time`, `fps.mjs`), steadiness (`steady.mjs` for the ground, `jitter.mjs` for anything), the scene switch (`switch.mjs`), a first visit (`cold.mjs`), a clip file rewritten with only what its clips use (`compact-glb.mjs`) |
+
+## The treasures
+
+Eight things a walk, laid along the way each walk takes: a brass key, a stopped watch, a carved bird, a bell, a
+letter, a glass marble. They are painted like everything else — a few primitives with a dark underpainting that
+`pinDabs` covers in strokes, the same call that paints the wanderer's cloak — and each carries a few strokes of light
+rising off it, which is how one is caught at all in the dark. They are also given a box in the still world's shade
+scene, so they lie in the snow with a shadow of their own rather than sitting on it.
+
+Walk within 1.9 m of one and it is picked up: a line at the top of the picture says which, and the count in the
+corner moves. **E** — or that count — opens the catalogue: what has been found, in its own colour, with the line
+that goes with it; and what has not, as a question mark with a hint at where to look and one at the other picture.
+What is found is kept in `localStorage` (`oil-paint.treasures.v1`), so the next visit has it already; the catalogue's
+`清空记录` clears this picture's record and reloads.
+
+| | |
+|---|---|
+| `data.js` | every entry: id, kind, place, yaw, colour, name in both languages, the line once found, the hint while not |
+| `things.js` | the things, one builder each, in the order they are listed in `THINGS` |
+| `index.js` | places them clear of trunks, paints them, joins the shade scene, glows them, picks them up, saves |
+| `book.js` | the catalogue page, the count in the corner, and the line that appears when something is picked up |
+
+The places are the only part that has to be got right by hand: they are given along the crest in the aurora and
+along the worn way in the wood, where both walks are kept clear of trunks, and the code nudges one aside if a pine
+is nearer than it should be. `window.lab.treasures` (`list()`, `at(id)`, `take(id)`) is there for the tools.
 
 ## Limits
 

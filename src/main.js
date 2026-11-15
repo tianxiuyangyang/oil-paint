@@ -17,6 +17,7 @@ import { createLeaves } from './world/leaves.js';
 import { createKick } from './world/kick.js';
 import { createShade } from './oilpaint/shade.js';
 import { createFrame } from './oilpaint/finish.js';
+import { createTreasures } from './treasure/index.js';
 import { createFigure } from './figure/figure.js';
 import { Animator } from './figure/animator.js';
 import { Player } from './figure/player.js';
@@ -81,6 +82,14 @@ lap('forest');
 const floor = createFloor(shared);
 const sky = createSky(shared);
 const leaves = createLeaves(shared, 2400);
+// eight things hidden along the way. They join the shade scene before it is drawn, so they lie in the leaves with
+// their own shadows; the catalogue (E) is theirs to open.
+const treasures = createTreasures({
+  scene, shared, name: 'autumn', heightAt,
+  avoid: forest.colliders, shade: forest.shade,
+  mood: { mul: [1.06, 1.0, 0.9], add: [0.0, 0.0, 0.0], floor: [0.07, 0.055, 0.03] }, // a warm sun, and the leaves' light under it
+  ui: !capture && !q.has('clean'),
+});
 const shade = createShade(renderer, shared, forest.shade);
 lap('shade');
 say(0.25, 'Fetching the wanderer');
@@ -107,6 +116,7 @@ const player = new Player({ RAPIER, world: physics, man, animator, spawn, yaw: M
 const follow = new Follow(camera);
 follow.yaw = Math.PI;
 const input = new Input(renderer.domElement, { pads: !capture && !q.has('nopad') });
+treasures.setInput(input);
 physics.step();
 lap('figure');
 
@@ -147,6 +157,7 @@ function tick(dt) {
   dt = Math.min(dt, 1 / 20);
   time += dt;
   const inp = input.read(dt);
+  if (treasures.isOpen) treasures.freeze(inp); // the catalogue is open: he stands still until it is shut
   player.update(dt, inp, follow.yaw);
   // the wood has no wall: far from the way he is turned gently back, and under the world he starts again
   if (player.feet.y < heightAt(player.feet.x, player.feet.z) - 6 || wayDist(player.feet.x, player.feet.z) > 78) respawn();
@@ -168,6 +179,7 @@ function tick(dt) {
   man.object.updateMatrixWorld(true);
   figure.updateCloak(dt, air, heightAt);
   kick.update(dt, root, { x: Math.sin(player.yaw), z: Math.cos(player.yaw) }, player.speed, onGround, heightAt);
+  treasures.update(dt, player.feet);
 
   follow.update(dt, root, inp.look, inp.zoom, (o, d, max) => player.castRay(o, d, max), heightAt);
   camera.updateMatrixWorld(true);
@@ -181,7 +193,7 @@ function tick(dt) {
 }
 
 window.lab = {
-  THREE, player, follow, camera, input, animator, figure, shared, frame, renderer, timings, counts: forest.counts, heightAt, respawn, way,
+  THREE, player, follow, camera, input, animator, figure, shared, frame, renderer, timings, counts: forest.counts, heightAt, respawn, way, treasures, scene,
   step(dt = 1 / 60, n = 1) { for (let i = 0; i < n; i++) tick(dt); },
   setInput(fn) { input.override = fn; },
   /** Puts him at (x, z) on the ground, facing (fx, fz), with the eye behind him. */

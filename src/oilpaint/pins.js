@@ -7,8 +7,13 @@ import { dabMaterial, dabGeometry, dabMesh } from './dabs.js';
 /**
  * palettes: [[light, half-tone, shade, (its own colour, for a lamp's light)], ...]. parts: [{ mesh, count, accept(p), style(p, n) -> { pal, size: [across, along], dir } }],
  * where p and n are a point of the mesh and its normal in the pose it was made in.
+ *
+ * `lift` is how far a dab stands off its surface toward the eye, in its own sizes. A dab is a card facing the eye,
+ * so on a thing that bulges (a sphere, a bell) the surface itself is nearer the eye than the middle of the card and
+ * takes the depth test: the wanderer's cloth is flat enough that a little lift is enough, a small round thing wants
+ * more of it, or its paint is worn down to the slivers at its edge.
  */
-export function pinDabs(shared, palettes, parts) {
+export function pinDabs(shared, palettes, parts, { lift = 0.3 } = {}) {
   let seed = 9151;
   const rand = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
   const pins = [];
@@ -29,8 +34,29 @@ export function pinDabs(shared, palettes, parts) {
       const want = rand() * total;
       let lo = 0, hi = tris - 1;
       while (lo < hi) { const mid = (lo + hi) >> 1; if (sums[mid] < want) lo = mid + 1; else hi = mid; }
-      const v = at(lo, Math.floor(rand() * 3));
-      const p = new THREE.Vector3().fromBufferAttribute(pos, v), n = new THREE.Vector3().fromBufferAttribute(nrm, v);
+      const p = new THREE.Vector3(), n = new THREE.Vector3();
+      let v = at(lo, 0);
+      if (part.mesh.isSkinnedMesh) {
+        // a skinned point has to be a vertex: that is the only place the skin's bones can be read for it
+        v = at(lo, Math.floor(rand() * 3));
+        p.fromBufferAttribute(pos, v); n.fromBufferAttribute(nrm, v);
+      } else {
+        // anywhere inside the triangle, evenly: on a coarse shape (a bell, a box of eight corners) pinning to the
+        // corners leaves the faces bare however many pins there are
+        const [i0, i1, i2] = [at(lo, 0), at(lo, 1), at(lo, 2)];
+        p.fromBufferAttribute(pos, i0);
+        const e1 = new THREE.Vector3().fromBufferAttribute(pos, i1).sub(p);
+        const e2 = new THREE.Vector3().fromBufferAttribute(pos, i2).sub(p);
+        let u = rand(), w = rand();
+        if (u + w > 1) { u = 1 - u; w = 1 - w; }
+        p.addScaledVector(e1, u).addScaledVector(e2, w);
+        n.fromBufferAttribute(nrm, i0)
+          .multiplyScalar(1 - u - w)
+          .addScaledVector(new THREE.Vector3().fromBufferAttribute(nrm, i1), u)
+          .addScaledVector(new THREE.Vector3().fromBufferAttribute(nrm, i2), w)
+          .normalize();
+        v = i0;
+      }
       if (part.accept && !part.accept(p)) continue;
       const s = part.style(p, n);
       pins.push({ mesh: part.mesh, v, p, n, d: s.dir.clone().normalize(), pal: s.pal, size: s.size, seed: rand() * 1000 });
@@ -71,7 +97,7 @@ export function pinDabs(shared, palettes, parts) {
         d.c1 = hazed(c, aPos);
         d.c2 = hazed(jitter(c * 1.22, r.wxy, 0.5), aPos);
         d.seed = aData.x;
-        d.lift = 0.3;
+        d.lift = ${lift.toFixed(3)};
         d.turnabout = 1.0;
       }`,
     minPx: [2.5, 4], maxPx: [200, 400], cells: [0, 6],

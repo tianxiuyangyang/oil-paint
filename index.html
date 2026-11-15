@@ -19,13 +19,62 @@
       #scenes button { font: 13px/1 Georgia, serif; letter-spacing: 0.04em; color: #f3e3c3; background: rgba(28, 20, 18, 0.55); border: 1px solid rgba(243, 227, 195, 0.25);
         padding: 8px 12px; border-radius: 3px; cursor: pointer; }
       #scenes button.on { background: rgba(243, 227, 195, 0.9); color: #1c1512; cursor: default; }
+
+      /* the treasure catalogue: the count in the corner, the line when one is picked up, and the page over the picture */
+      #bag { position: fixed; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 8px; font: 13px/1 Georgia, serif;
+        letter-spacing: 0.06em; color: #f3e3c3; background: rgba(28, 20, 18, 0.55); border: 1px solid rgba(243, 227, 195, 0.25);
+        padding: 8px 12px; border-radius: 3px; cursor: pointer; }
+      #bag:hover { border-color: rgba(243, 227, 195, 0.5); }
+      #bag kbd { font: 11px/1 Georgia, serif; border: 1px solid rgba(243, 227, 195, 0.45); border-radius: 2px; padding: 2px 4px; color: #f3e3c3; }
+      #bag b { font-weight: normal; color: #ffd9a0; min-width: 3.4em; text-align: right; }
+      #bag.full b { color: #9fe0c0; }
+      html[data-scene='aurora'] #bag { background: rgba(8, 22, 28, 0.6); border-color: rgba(159, 216, 196, 0.3); }
+
+      #toast { position: fixed; left: 50%; top: 16%; transform: translate(-50%, -10px); font: 15px/1.5 Georgia, serif; letter-spacing: 0.06em;
+        color: #ffe9c6; background: rgba(28, 20, 18, 0.78); border: 1px solid rgba(255, 214, 160, 0.32); padding: 10px 20px;
+        border-radius: 3px; opacity: 0; transition: opacity 0.45s, transform 0.45s; pointer-events: none; }
+      #toast.on { opacity: 1; transform: translate(-50%, 0); }
+      #toast b { font-weight: normal; color: #fff3da; }
+      #toast em { font-style: normal; font-size: 12px; letter-spacing: 0.12em; color: #b9a184; margin-left: 4px; }
+
+      #book { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(8, 6, 5, 0.66); }
+      #book[hidden] { display: none; }
+      #book .page { width: min(780px, 92vw); max-height: 86vh; overflow-y: auto; background: linear-gradient(160deg, #2a201b, #1a1310 70%);
+        border: 1px solid rgba(243, 227, 195, 0.26); border-radius: 4px; padding: 20px 24px 16px; color: #f3e3c3;
+        font: 14px/1.55 Georgia, serif; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65); }
+      #book header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      #book h2 { margin: 0; font-size: 20px; font-weight: normal; letter-spacing: 0.16em; }
+      #book .sub { margin: 4px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #a08a72; }
+      #book h3 { margin: 18px 0 8px; font-size: 12px; font-weight: normal; letter-spacing: 0.2em; text-transform: uppercase; color: #c2a98b; }
+      #book h3 span { letter-spacing: 0.06em; color: #8d7a66; margin-left: 6px; }
+      #book-close { background: none; border: 0; color: #c2a98b; font: 22px/1 Georgia, serif; cursor: pointer; padding: 0 4px; }
+      #book-close:hover { color: #fff3da; }
+      #book .cards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+      #book .card { border: 1px solid rgba(243, 227, 195, 0.14); border-radius: 3px; padding: 10px 12px 11px; background: rgba(243, 227, 195, 0.04); }
+      #book .card .dot { float: left; width: 26px; height: 26px; margin: 2px 10px 4px 0; border-radius: 50%;
+        background: radial-gradient(circle at 34% 30%, var(--c), rgba(0, 0, 0, 0.55)); box-shadow: 0 0 12px -2px var(--c); }
+      #book .card .dot.locked { background: rgba(243, 227, 195, 0.06); box-shadow: none; display: grid; place-items: center;
+        color: #7d6b59; font-size: 13px; }
+      #book .card b { font-weight: normal; font-size: 15px; letter-spacing: 0.06em; }
+      #book .card em { display: block; font-style: normal; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #9c8672; }
+      #book .card p { margin: 7px 0 0; font-size: 12.5px; color: #cbb59b; }
+      #book .card.lost { opacity: 0.66; }
+      #book .card.lost p { color: #a3917c; }
+      #book .empty { margin: 0; font-size: 12.5px; color: #9c8672; }
+      #book footer { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding-top: 12px;
+        border-top: 1px solid rgba(243, 227, 195, 0.12); font-size: 11.5px; letter-spacing: 0.06em; color: #9c8672; }
+      #book footer kbd { font: 10px/1 Georgia, serif; border: 1px solid rgba(243, 227, 195, 0.35); border-radius: 2px; padding: 2px 4px; }
+      #book-other { flex: 1; }
+      #book-reset { background: none; border: 1px solid rgba(243, 227, 195, 0.2); color: #a08a72; font: 11px/1 Georgia, serif;
+        letter-spacing: 0.08em; padding: 5px 9px; border-radius: 2px; cursor: pointer; }
+      #book-reset:hover { color: #e7cfae; border-color: rgba(243, 227, 195, 0.45); }
     </style>
   </head>
   <body>
     <div id="view"></div>
     <div id="loading">Mixing paint</div>
     <div id="scenes"><button data-scene="aurora" tabindex="-1">Aurora</button><button data-scene="autumn" tabindex="-1">Autumn wood</button></div>
-    <div id="hint">Click to look · WASD move · Shift sprint · Space jump · wheel to step back</div>
+    <div id="hint">Click to look · WASD move · Shift sprint · Space jump · wheel to step back · E treasures</div>
     <script>
       // A page that can't start would sit at "Mixing paint" for ever, saying nothing (src/boot.js removes this line
       // once the picture is up). Say what went wrong instead, so a stuck load is a message and not a mystery.
