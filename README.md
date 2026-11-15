@@ -5,6 +5,8 @@ engine: three.js
 
 # Oil paint
 
+**Play it: <https://tianxiuyangyang.github.io/oil-paint/>** — every push to `main` builds the demo and publishes it to GitHub Pages.
+
 Draws a three.js scene as thick oil paint, stroke by stroke: every leaf, trunk, drift of snow, ray of the aurora and fold of cloth is a dab of the brush pinned to the world, so the paint stays on things as you move. The demo is two walks with the same wanderer: a ridge of snow under the aurora, with a cabin at the end of it, and an autumn wood.
 
 ![A cloaked wanderer with a lantern on a snow ridge under the aurora, a horn of rock ahead](shots/readme.jpg)
@@ -116,6 +118,10 @@ For **made things** (a cabin, furniture, pots) there is a kit in `src/night/kit.
 **Run `start.cmd`** to do all of that and open the page: it installs what is missing, builds, serves the build on 5405 and opens the browser. The page cannot be opened by double-clicking `index.html` — everything loads as ES modules, which a `file://` page may not import, so it would sit at "Mixing paint" for ever (the page now says so instead). For development, `npm run dev` serves the sources on 5406 with reloading.
 
 The tools in `tools/` drive it headless with Playwright: set `CHROME` to a Chromium of your own if Playwright has none. They show the wood unless given `--query "scene=aurora"`. `node tools/diag-load.mjs` loads the build the way a first visit does and prints every console message, page error and failed request, with the loading text as it goes (`--url` for a server already running, `--nogl` to see what a browser without WebGL2 says, `--shot` for a screenshot).
+
+## Deploying
+
+`.github/workflows/deploy.yml` does it: on every push to `main` (or a manual run of the workflow) it checks the repository out, runs `npm ci` and `npm run build` on Ubuntu with Node 24, and hands `dist/` to GitHub Pages. Because Pages builds it there, `dist/` is not committed. The site is at <https://tianxiuyangyang.github.io/oil-paint/>, and the build makes every path relative (`base: './'` in `vite.config.mjs`), so it works from that subpath unchanged.
 
 ## Credits
 
