@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oil paint</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html, body { margin: 0; height: 100%; background: #1c1512; overflow: hidden; }
+      #view, #view canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+      #loading { position: fixed; inset: 0; display: grid; place-items: center; color: #d9b98a; font: 15px/1.4 Georgia, serif; letter-spacing: 0.08em; }
+      #hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); color: #f3e3c3; font: 14px/1.4 Georgia, serif; letter-spacing: 0.04em;
+        background: rgba(28, 20, 18, 0.55); padding: 8px 16px; border-radius: 3px; transition: opacity 2s; pointer-events: none; white-space: nowrap; }
+      #hint.faded { opacity: 0; }
+      #hint.off { display: none; }
+      html[data-scene='aurora'] body { background: #061219; }
+      html[data-scene='aurora'] #loading { color: #9fd8c4; }
+      #scenes { position: fixed; left: 18px; bottom: 18px; display: flex; gap: 6px; }
+      #scenes button { font: 13px/1 Georgia, serif; letter-spacing: 0.04em; color: #f3e3c3; background: rgba(28, 20, 18, 0.55); border: 1px solid rgba(243, 227, 195, 0.25);
+        padding: 8px 12px; border-radius: 3px; cursor: pointer; }
+      #scenes button.on { background: rgba(243, 227, 195, 0.9); color: #1c1512; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <div id="view"></div>
+    <div id="loading">Mixing paint</div>
+    <div id="scenes"><button data-scene="aurora" tabindex="-1">Aurora</button><button data-scene="autumn" tabindex="-1">Autumn wood</button></div>
+    <div id="hint">Click to look · WASD move · Shift sprint · Space jump · wheel to step back</div>
+    <script>
+      // A page that can't start would sit at "Mixing paint" for ever, saying nothing (src/boot.js removes this line
+      // once the picture is up). Say what went wrong instead, so a stuck load is a message and not a mystery.
+      (() => {
+        const loading = document.getElementById('loading');
+        if (!loading) return;
+        let said = false;
+        const say = (text) => {
+          if (said || !loading.isConnected) return;
+          said = true;
+          loading.textContent = text;
+          loading.style.maxWidth = '34em';
+          loading.style.textAlign = 'center';
+          loading.style.lineHeight = '1.55';
+          console.error('[oil-paint]', text);
+        };
+        const stopped = (message) => {
+          const text = String(message ?? '').replace(/^Uncaught (Error: )?/, '');
+          say(/webgl/i.test(text)
+            ? 'This browser cannot make a WebGL2 context, which the painter needs: turn hardware acceleration back on, or use Chrome or Edge. (' + text + ')'
+            : 'The picture stopped: ' + text);
+        };
+        // Opened by double-click, no module is allowed to load and nothing would ever start.
+        if (location.protocol === 'file:') say('This page has to be served, not opened as a file. Run start.cmd (or `npm run dev`) and open the address it prints — http://127.0.0.1:5405/.');
+        addEventListener('error', (e) => {
+          if (e.message) stopped(e.message);
+          else if (e.target?.src) say('Could not load ' + e.target.src);
+          else if (e.target?.href) say('Could not load ' + e.target.href);
+        }, true);
+        addEventListener('unhandledrejection', (e) => stopped(e.reason?.message ?? e.reason));
+        // WebGL2 is what the painter draws with: without it the renderer is never made.
+        const started = () => !!document.querySelector('#view canvas');
+        const gl2 = () => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } };
+        setTimeout(() => { if (!started() && !gl2()) say('This browser has no WebGL2. Turn hardware acceleration back on, or use Chrome or Edge.'); }, 4000);
+        setTimeout(() => { if (!started()) say('Still mixing after 25 s: the machine is very slow, or a file is missing. The console says which.'); }, 25000);
+      })();
+    </script>
+    <script type="module" src="/src/boot.js"></script>
+  </body>
+</html>

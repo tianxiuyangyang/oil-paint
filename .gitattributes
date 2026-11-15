@@ -1,0 +1,4 @@
+# Bytes are kept exactly as written: no CRLF/LF normalisation on checkout.
+# Binaries (the .glb figures, the shot .jpg files) are committed as they are
+# rather than through git-lfs, so a plain checkout is enough to build the site.
+* -text
